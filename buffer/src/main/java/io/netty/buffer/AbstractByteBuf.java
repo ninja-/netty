@@ -661,6 +661,13 @@ public abstract class AbstractByteBuf extends ByteBuf {
     }
 
     @Override
+    public ByteBuf readRefSlice(int length) {
+        ByteBuf slice = rslice(readerIndex, length);
+        readerIndex += length;
+        return slice;
+    }
+
+    @Override
     public ByteBuf readBytes(byte[] dst, int dstIndex, int length) {
         checkReadableBytes(length);
         getBytes(readerIndex, dst, dstIndex, length);
@@ -917,7 +924,7 @@ public abstract class AbstractByteBuf extends ByteBuf {
 
     @Override
     public ByteBuf duplicate() {
-        return new DuplicatedAbstractByteBuf(this);
+        return new UnpooledDuplicatedByteBuf(this);
     }
 
     @Override
@@ -927,7 +934,22 @@ public abstract class AbstractByteBuf extends ByteBuf {
 
     @Override
     public ByteBuf slice(int index, int length) {
-        return new SlicedAbstractByteBuf(this, index, length);
+        return new UnpooledSlicedByteBuf(this, index, length);
+    }
+
+    @Override
+    public ByteBuf rslice() {
+        return rslice(readerIndex, readableBytes());
+    }
+
+    @Override
+    public ByteBuf rduplicate() {
+        return PooledDuplicatedByteBuf.newInstance(this);
+    }
+
+    @Override
+    public ByteBuf rslice(int index, int length) {
+        return PooledSlicedByteBuf.newInstance(this, index, length);
     }
 
     @Override
